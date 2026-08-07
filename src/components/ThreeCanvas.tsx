@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 
 export function ThreeCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,135 +15,177 @@ export function ThreeCanvas() {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Scene
+    // ── Scene setup ────────────────────────────────────────────────────
     const scene = new THREE.Scene();
-
-    // Camera
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.z = 8;
 
-    // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     container.appendChild(renderer.domElement);
 
-    // Group to hold Torus for animation
-    const mainGroup = new THREE.Group();
-    scene.add(mainGroup);
-
-    // Geometry - Torus Knot representing code/token connection
-    const torusGeometry = new THREE.TorusKnotGeometry(1.2, 0.42, 180, 24, 2, 3);
-
-    // Material - Ultra-Glossy Chrome-like Metallic Indigo (Extreme specular reflections)
+    // ── Shared chrome material ─────────────────────────────────────────
     const material = new THREE.MeshPhysicalMaterial({
       color: 0x4f46e5,
-      roughness: 0.05,       // Lower roughness makes it mirror-like
-      metalness: 0.95,       // Almost pure metal
-      clearcoat: 1.0,        // High clearcoat for lacquer shine
-      clearcoatRoughness: 0.02, // Polish finish on clearcoat
+      roughness: 0.05,
+      metalness: 0.95,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
       reflectivity: 1.0,
       sheen: 1.0,
       sheenRoughness: 0.1,
       sheenColor: 0x818cf8,
     });
 
+    // ── TorusKnot ─────────────────────────────────────────────────────
+    const torusGroup = new THREE.Group();
+    scene.add(torusGroup);
+
+    const torusGeometry = new THREE.TorusKnotGeometry(1.2, 0.42, 180, 24, 2, 3);
     const torusMesh = new THREE.Mesh(torusGeometry, material);
-    torusMesh.position.set(0, 0, 0);
-    mainGroup.add(torusMesh);
+    torusGroup.add(torusMesh);
+    torusGroup.scale.set(0.01, 0.01, 0.01); // start tiny for entry animation
 
-    // Start group scaled down for entry animation
-    mainGroup.scale.set(0.01, 0.01, 0.01);
+    // ── Text group (created after font loads) ─────────────────────────
+    const textGroup = new THREE.Group();
+    scene.add(textGroup);
+    textGroup.scale.set(0.01, 0.01, 0.01);
+    textGroup.visible = false;
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Dim ambient for high contrast
-    scene.add(ambientLight);
+    // ── Lights ────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
 
-    // Soft overhead light
     const topLight = new THREE.DirectionalLight(0x818cf8, 1);
     topLight.position.set(0, 10, 2);
     scene.add(topLight);
 
-    // Bright White Glint Light (Tracks cursor closely to create dynamic specular gleam)
     const glintLight = new THREE.PointLight(0xffffff, 30, 10);
     glintLight.position.set(0, 0, 4);
     scene.add(glintLight);
 
-    // Cyan volumetric fill light
     const fillLight = new THREE.PointLight(0x06b6d4, 15, 8);
     fillLight.position.set(0, 0, 3);
     scene.add(fillLight);
 
-    // Additional deep purple backlighting
     const spotLight = new THREE.SpotLight(0x6366f1, 15);
     spotLight.position.set(0, 0, 6);
     spotLight.angle = Math.PI / 4;
     spotLight.penumbra = 1;
     scene.add(spotLight);
 
-    // Mouse Tracking (Gyro parallax & Spotlight follow)
+    // ── Mouse tracking ─────────────────────────────────────────────────
     let mouseX = 0;
     let mouseY = 0;
     let targetMouseX = 0;
     let targetMouseY = 0;
 
-    const handleMouseMove = (event: MouseEvent) => {
-      // Normalize to -1 to 1
-      mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-      mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
     };
-
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Animation Loop
+    // ── Scroll morph progress ─────────────────────────────────────────
+    // morphT = 0 (torus) → 1 (TRIM text)
+    let morphT = 0;
+    let currentMorphT = 0; // smoothly interpolated
+
+    const handleScroll = () => {
+      const vh = window.innerHeight;
+      const raw = (window.scrollY - vh * 0.4) / (vh * 0.8);
+      morphT = Math.max(0, Math.min(1, raw));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // ── Load font & build text geometry ──────────────────────────────
+    let textMesh: THREE.Mesh | null = null;
+    let textGeometry: TextGeometry | null = null;
+
+    const fontLoader = new FontLoader();
+    fontLoader.load("/helvetiker_bold.typeface.json", (font) => {
+      textGeometry = new TextGeometry("TRIM", {
+        font,
+        size: 1.0,
+        depth: 0.4,
+        curveSegments: 16,
+        bevelEnabled: true,
+        bevelThickness: 0.06,
+        bevelSize: 0.05,
+        bevelOffset: 0,
+        bevelSegments: 10,
+      });
+      textGeometry.center();
+
+      textMesh = new THREE.Mesh(textGeometry, material);
+      textGroup.add(textMesh);
+    });
+
+    // ── Easing helper ─────────────────────────────────────────────────
+    const easeInOut = (t: number) =>
+      t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+    // ── Animation loop ────────────────────────────────────────────────
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
+      animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth interpolation (lerp) for mouse gyro tracking
+      // Smooth mouse
       targetMouseX += (mouseX - targetMouseX) * 0.08;
       targetMouseY += (mouseY - targetMouseY) * 0.08;
 
-      // Smooth entry scale animation (scale up to 1)
-      if (mainGroup.scale.x < 1) {
-        mainGroup.scale.x += (1 - mainGroup.scale.x) * 0.05;
-        mainGroup.scale.y += (1 - mainGroup.scale.y) * 0.05;
-        mainGroup.scale.z += (1 - mainGroup.scale.z) * 0.05;
+      // Smooth morph interpolation
+      currentMorphT += (morphT - currentMorphT) * 0.06;
+      const ease = easeInOut(currentMorphT);
+
+      // Entry pop-in for torus (only before morph starts)
+      if (torusGroup.scale.x < 1 && ease < 0.05) {
+        const s = torusGroup.scale.x + (1 - torusGroup.scale.x) * 0.06;
+        torusGroup.scale.set(s, s, s);
       }
 
-      // Torus auto rotation
+      // ── Torus: shrink + spin out as morph progresses ───────────────
+      const torusScale = Math.max(0.01, 1 - ease * 1.2);
+      torusGroup.scale.set(torusScale, torusScale, torusScale);
       torusMesh.rotation.y = elapsedTime * 0.2;
       torusMesh.rotation.x = elapsedTime * 0.1;
+      torusGroup.rotation.y = targetMouseX * 0.6 * (1 - ease);
+      torusGroup.rotation.x = -targetMouseY * 0.4 * (1 - ease);
+      torusGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.15 * (1 - ease);
+      torusGroup.position.x = targetMouseX * 0.4 * (1 - ease);
+      torusGroup.visible = torusScale > 0.05;
 
-      // Main group slight tilt & float (gyro)
-      mainGroup.rotation.y = targetMouseX * 0.6;
-      mainGroup.rotation.x = -targetMouseY * 0.4;
-      mainGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.15;
-      mainGroup.position.x = targetMouseX * 0.4;
+      // ── Text: grow in as morph progresses ─────────────────────────
+      if (textMesh) {
+        textGroup.visible = ease > 0.05;
+        const textScale = Math.min(1.0, ease * 1.3);
+        textGroup.scale.set(textScale, textScale, textScale);
+        // Gentle idle rotation for text (slight tilt following mouse)
+        textGroup.rotation.y = targetMouseX * 0.2 * ease;
+        textGroup.rotation.x = -targetMouseY * 0.12 * ease;
+        // Slight float in text mode
+        textGroup.position.y = Math.sin(elapsedTime * 0.8) * 0.06 * ease;
+      }
 
-      // Dynamic glint/gleam light follows cursor to create sharp moving specular highlights
+      // ── Dynamic lights follow mouse ────────────────────────────────
       glintLight.position.x = targetMouseX * 5.5;
       glintLight.position.y = targetMouseY * 4.0;
-      
-      // Fill light tracks loosely for color depth
       fillLight.position.x = -targetMouseX * 3;
       fillLight.position.y = -targetMouseY * 2;
-
-      // SpotLight coordinates
       spotLight.position.x = targetMouseX * 4;
       spotLight.position.y = targetMouseY * 3;
-      spotLight.target = mainGroup;
+      spotLight.target = ease > 0.5 ? textGroup : torusGroup;
 
       renderer.render(scene, camera);
-      animationFrameId = requestAnimationFrame(animate);
     };
 
     animate();
 
-    // Resize Handler
+    // ── Resize ─────────────────────────────────────────────────────────
     const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth;
@@ -150,16 +194,16 @@ export function ThreeCanvas() {
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-
     window.addEventListener("resize", handleResize);
 
-    // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
       renderer.dispose();
       torusGeometry.dispose();
+      textGeometry?.dispose();
       material.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
