@@ -23,7 +23,7 @@ describe('Landing Page Redesign', () => {
   it('renders the main grid elements', () => {
     render(<Home />)
     
-    expect(screen.getByText(/TOKENTRIM.APP/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/TOKENTRIM\.APP/i)[0]).toBeInTheDocument()
     expect(screen.getByText(/Optimize &/i)).toBeInTheDocument()
     expect(screen.getByText(/Thinking in tokens/i)).toBeInTheDocument()
   })
