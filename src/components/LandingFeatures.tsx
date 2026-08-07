@@ -23,8 +23,8 @@ const features = [
 
 export function LandingFeatures() {
   return (
-    <section className="py-20 max-w-6xl mx-auto px-6 w-full">
-      <div className="grid md:grid-cols-3 gap-8">
+    <section className="py-2 max-w-6xl mx-auto px-6 w-full">
+      <div className="grid md:grid-cols-3 gap-4 md:gap-6">
         {features.map((feature, index) => (
           <motion.div
             key={index}

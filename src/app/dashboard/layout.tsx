@@ -17,10 +17,10 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/10 flex flex-col bg-white/[0.02]">
         <div className="p-6 border-b border-white/10 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-            <Code2 className="w-5 h-5 text-indigo-400" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center border border-indigo-500/30 bg-black/40">
+            <img src="/logo.png" alt="TokenTrim Logo" className="w-full h-full object-cover" />
           </div>
-          <span className="font-semibold tracking-wide">Optimizer</span>
+          <span className="font-semibold tracking-wide">TokenTrim</span>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">

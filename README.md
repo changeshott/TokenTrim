@@ -1,49 +1,53 @@
-# LLM Context Optimizer & AST Trimmer
+<div align="center">
+  <img src="./public/logo.png" width="150" alt="TokenTrim Logo" />
+  <h1>TokenTrim</h1>
+  <p><strong>A lightning-fast, stateless web tool that optimizes LLM context windows by trimming ASTs and stripping function bodies to save tokens.</strong></p>
+</div>
 
-Sebuah aplikasi web *stateless* (sepenuhnya berjalan di browser) yang berfungsi untuk mengoptimalkan konteks kode sebelum dikirim ke Large Language Models (LLMs) seperti Claude, ChatGPT, atau Gemini. 
+---
 
-Sistem ini memecahkan masalah batasan *token limit* dan *context window* dengan membedah Abstract Syntax Tree (AST) kode sumber Anda, mempertahankan definisi dan arsitektur penting (seperti interface, tipe, signature class, & nama fungsi), sambil membuang logika detail di dalam *body* fungsi.
+TokenTrim solves the problem of *token limits* and *context window* exhaustion by dissecting your source code's Abstract Syntax Tree (AST). It preserves critical definitions and architecture (like interfaces, types, class signatures, and function names) while stripping away the detailed logic inside function bodies.
 
-## Fitur Utama
+## Key Features
 
-- **Stateless & Secure**: Berjalan 100% secara lokal menggunakan kekuatan WebAssembly di browser Anda. Kode Anda tidak pernah dikirim ke server.
-- **Tree-sitter Powered**: Memahami struktur asli kode (bukan Regex).
-- **Multi-language Support**: Saat ini mendukung TypeScript, JavaScript, Python, Go, Rust, dan Java.
-- **Drag & Drop Folder**: Gunakan API `webkitdirectory` untuk menganalisis dan memproses ratusan file sekaligus dari satu *folder* proyek.
-- **File Tree UI**: Pilih secara spesifik file mana yang ingin Anda ikutkan/kecualikan dengan sistem *checkbox*.
-- **Token Estimator**: Mengukur secara real-time seberapa banyak persentase teks dan token LLM yang berhasil Anda hemat.
-- **Markdown Ready**: Hasil *trimming* langsung digabungkan ke format markdown sehingga siap di-*copy paste* ke prompt AI.
+- **Stateless & Secure**: Runs 100% locally in your browser using WebAssembly. Your source code is never sent to a server.
+- **Tree-sitter Powered**: Understands the native structure of your code (not regex-based).
+- **Multi-language Support**: Currently supports TypeScript, JavaScript, Python, Go, Rust, and Java.
+- **Drag & Drop Folder**: Uses the `webkitdirectory` API to let you analyze hundreds of files at once from a single project folder.
+- **Interactive Dashboard**: Select exactly which files to include/exclude with a checkbox-driven File Tree UI.
+- **Token Estimator**: Measures in real-time the percentage of text and LLM tokens you are saving.
+- **Markdown Ready**: The trimmed output is instantly merged into a Markdown format, ready to be copy-pasted into any AI prompt.
 
-## Menjalankan Proyek
+## Running the Project
 
-Proyek ini dibangun menggunakan Next.js dan Tailwind CSS.
+This project is built using Next.js (App Router) and Tailwind CSS.
 
-### Instalasi
-\`\`\`bash
+### Installation
+```bash
 npm install
-\`\`\`
+```
 
-### Menjalankan Server Development
-\`\`\`bash
+### Starting the Development Server
+```bash
 npm run dev
-\`\`\`
-Buka [http://localhost:3000](http://localhost:3000) pada browser Anda.
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Testing
-Proyek ini mengadopsi Test-Driven Development (TDD) menggunakan Vitest.
-\`\`\`bash
+This project adopts Test-Driven Development (TDD) using Vitest.
+```bash
 npm run test
-\`\`\`
+```
 
 ## Tech Stack
 - Next.js (App Router)
 - React
 - Tailwind CSS & Framer Motion
 - web-tree-sitter & WASM
-- Vitest
+- Vitest & React Testing Library
 
-## Standar & Kualitas
-Proyek ini dijaga ketat kualitasnya menggunakan kombinasi *agen otomatis* yang melingkupi:
-- **TDD Workflow**: Standar minimal 80% coverage.
-- **Frontend Patterns**: Arsitektur UI yang dipisahkan dari Hook logika (*Separation of concerns*).
-- **Security & Code Review**: Kode diverifikasi terhadap celah keamanan (OWASP) dan *best-practices* koding modern.
+## Standards & Quality
+This project maintains strict code quality using a combination of automated agents and patterns:
+- **TDD Workflow**: A minimum standard of 80% test coverage.
+- **Frontend Patterns**: A clean UI architecture separated from logic hooks (*Separation of Concerns*).
+- **Security & Code Review**: Code is continuously verified against security vulnerabilities (OWASP) and modern coding best practices.
