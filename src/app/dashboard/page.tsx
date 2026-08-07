@@ -56,15 +56,17 @@ export default function Dashboard() {
   return (
     <div className="w-full flex flex-col items-center">
       <div className="z-10 max-w-5xl w-full flex flex-col items-center text-center">
+
+        {/* Page label badge */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-950/40 border border-indigo-500/20 backdrop-blur-md mb-8 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
         >
-          <Code2 className="w-5 h-5 text-indigo-400" />
-          <span className="text-sm font-medium tracking-wide">Workspace</span>
+          <Code2 className="w-3.5 h-3.5 text-indigo-400" />
+          <span className="font-mono text-[10px] uppercase tracking-widest text-indigo-300/70">AST_OPTIMIZER // v1.0</span>
         </motion.div>
-        
+
         <AnimatePresence mode="wait">
           {!files.length && !isProcessing && (
             <motion.div
@@ -74,27 +76,29 @@ export default function Dashboard() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-xl"
             >
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-                {...({ webkitdirectory: "true", directory: "true" } as unknown as React.InputHTMLAttributes<HTMLInputElement>)} 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                {...({ webkitdirectory: "true", directory: "true" } as unknown as React.InputHTMLAttributes<HTMLInputElement>)}
               />
-              
+
               <button
                 onClick={handleDirectorySelect}
-                className="group relative w-full flex flex-col items-center justify-center p-12 border-2 border-dashed border-white/10 rounded-3xl bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-500/50 transition-all duration-300"
+                className="group relative w-full flex flex-col items-center justify-center p-14 border border-dashed border-indigo-500/20 rounded-3xl bg-indigo-950/10 hover:bg-indigo-950/20 hover:border-indigo-500/40 transition-all duration-300"
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <FolderUp className="w-12 h-12 text-slate-500 group-hover:text-indigo-400 group-hover:scale-110 transition-all duration-300 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Select Project Folder</h3>
-                <p className="text-sm text-slate-500">Supports .ts, .py, .go, .rs, .java files</p>
+                <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 via-transparent to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="mb-5 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.25)] transition-all duration-300">
+                  <FolderUp className="w-8 h-8 text-indigo-400/60 group-hover:text-indigo-400 group-hover:scale-110 transition-all duration-300" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1.5 text-white">Select Project Folder</h3>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-indigo-200/40">Supports .ts .py .go .rs .java</p>
               </button>
-              
+
               {error && (
-                <div className="mt-6 flex items-center justify-center gap-2 text-red-400 bg-red-400/10 px-4 py-3 rounded-xl border border-red-400/20">
-                  <AlertCircle className="w-5 h-5" />
+                <div className="mt-6 flex items-center justify-center gap-2 text-red-400 bg-red-500/5 px-4 py-3 rounded-xl border border-red-500/20">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <p className="text-sm">{error}</p>
                 </div>
               )}
@@ -107,21 +111,24 @@ export default function Dashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full max-w-md flex flex-col items-center p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl"
+              className="w-full max-w-md flex flex-col items-center p-8 rounded-3xl bg-indigo-950/20 border border-indigo-500/15 backdrop-blur-xl"
             >
-              <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mb-6" />
-              <h3 className="text-lg font-medium mb-2">Analyzing AST...</h3>
-              <p className="text-sm text-slate-400 mb-6 truncate w-full text-center">
+              <div className="mb-6 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+              </div>
+              <h3 className="font-mono text-[10px] uppercase tracking-widest text-indigo-300/60 mb-1">Parsing AST Tree</h3>
+              <p className="text-base font-semibold text-white mb-1">Analyzing...</p>
+              <p className="text-xs text-slate-500 mb-6 truncate w-full text-center">
                 {progress.currentFile || "Preparing files"}
               </p>
-              
-              <div className="w-full bg-black/50 rounded-full h-2 mb-2 overflow-hidden">
-                <div 
-                  className="bg-indigo-500 h-2 rounded-full transition-all duration-300" 
+
+              <div className="w-full bg-black/40 rounded-full h-1.5 mb-2 overflow-hidden border border-indigo-500/10">
+                <div
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(99,102,241,0.6)]"
                   style={{ width: `${(progress.current / Math.max(progress.total, 1)) * 100}%` }}
                 />
               </div>
-              <div className="flex justify-between w-full text-xs text-slate-500">
+              <div className="flex justify-between w-full text-[10px] font-mono text-indigo-400/40 uppercase tracking-wider">
                 <span>{progress.current} processed</span>
                 <span>{progress.total} total</span>
               </div>
@@ -136,38 +143,41 @@ export default function Dashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="w-full flex flex-col gap-6"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-left">Select Files to Include</h3>
-                <button 
+              <div className="flex items-center justify-between border-b border-indigo-500/10 pb-4">
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-indigo-400/50">[ FILE_SELECTION ]</span>
+                  <h3 className="text-lg font-semibold text-white text-left">Select Files to Include</h3>
+                </div>
+                <button
                   onClick={reset}
-                  className="text-sm text-slate-400 hover:text-white transition-colors"
+                  className="font-mono text-[10px] uppercase tracking-widest text-slate-500 hover:text-white transition-colors border border-slate-700/50 hover:border-slate-500/50 px-3 py-1.5 rounded-lg"
                 >
                   Cancel
                 </button>
               </div>
-              
+
               <FileTree files={files} onToggle={toggleFile} onToggleAll={toggleAll} />
-              
+
               {metrics && (
-                <div className="flex flex-col sm:flex-row items-center justify-between bg-white/5 border border-white/10 p-5 rounded-2xl gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between bg-indigo-950/20 border border-indigo-500/15 p-5 rounded-2xl gap-4 backdrop-blur-sm">
                   <div className="flex items-center gap-6 text-left">
                     <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Compression</p>
-                      <p className="text-2xl font-semibold text-emerald-400">-{metrics.percent}%</p>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-indigo-400/40 mb-1">Compression</p>
+                      <p className="text-2xl font-black text-emerald-400 tracking-tight">-{metrics.percent}%</p>
                     </div>
-                    <div className="w-px h-10 bg-white/10"></div>
+                    <div className="w-px h-10 bg-indigo-500/15" />
                     <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Est. Tokens Saved</p>
-                      <p className="text-2xl font-semibold text-indigo-400">~{metrics.tokensSaved.toLocaleString()}</p>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-indigo-400/40 mb-1">Tokens Saved ~</p>
+                      <p className="text-2xl font-black text-indigo-400 tracking-tight">{metrics.tokensSaved.toLocaleString()}</p>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={generateMarkdown}
                     disabled={metrics.fileCount === 0}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm tracking-wide transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.5)]"
                   >
-                    <Wand2 className="w-5 h-5" />
+                    <Wand2 className="w-4 h-4" />
                     Generate Output
                   </button>
                 </div>
@@ -182,25 +192,26 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               className="w-full flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4 px-2">
-                <button 
+              <div className="flex items-center justify-between mb-4 border-b border-indigo-500/10 pb-4">
+                <button
                   onClick={() => setMarkdown(null)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                  className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-3.5 h-3.5" />
                   Back to Files
                 </button>
                 <button
                   onClick={copyToClipboard}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm transition-all shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:shadow-[0_0_40px_rgba(99,102,241,0.5)] active:scale-95"
                 >
                   {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   {copied ? "Copied!" : "Copy Context"}
                 </button>
               </div>
-              
-              <div className="relative group rounded-2xl overflow-hidden border border-white/10 bg-[#0f0f11]">
-                <pre className="p-6 text-sm text-slate-300 overflow-x-auto max-h-[60vh] custom-scrollbar text-left font-mono">
+
+              <div className="relative group rounded-2xl overflow-hidden border border-indigo-500/15 bg-[#060810]">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+                <pre className="p-6 text-sm text-slate-300 overflow-x-auto max-h-[60vh] custom-scrollbar text-left font-mono leading-relaxed">
                   <code>{markdown}</code>
                 </pre>
               </div>
@@ -209,20 +220,10 @@ export default function Dashboard() {
         </AnimatePresence>
       </div>
       <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #475569;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.45); }
       `}} />
     </div>
   );
