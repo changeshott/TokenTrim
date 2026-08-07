@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Globe, ArrowRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Dynamically import ThreeCanvas to avoid SSR issues with window/document
 const ThreeCanvas = dynamic(
@@ -13,15 +13,32 @@ const ThreeCanvas = dynamic(
 );
 
 export default function Home() {
-  const [timeStr, setTimeStr] = useState("");
   const [typedText, setTypedText] = useState("");
   const fullText = "I'm TokenTrim, an AST optimization tool. I strip function bodies to save LLM tokens while preserving critical signatures.";
+  
+  // State for cursor coordinate tracking (for dynamic spotlight and glow)
+  const [mousePos, setMousePos] = useState({ x: -200, y: -200 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Update clock on client side to prevent hydration mismatches
   useEffect(() => {
-    setTimeStr(new Date().toLocaleTimeString('en-GB', { timeZoneName: 'short' }));
+    const handleMouseMove = (e: MouseEvent) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setMousePos({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      }
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  const [liveTime, setLiveTime] = useState("");
+  useEffect(() => {
+    setLiveTime(new Date().toLocaleTimeString('en-GB', { timeZoneName: 'short' }));
     const timer = setInterval(() => {
-      setTimeStr(new Date().toLocaleTimeString('en-GB', { timeZoneName: 'short' }));
+      setLiveTime(new Date().toLocaleTimeString('en-GB', { timeZoneName: 'short' }));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -68,25 +85,40 @@ export default function Home() {
 
   return (
     <motion.div 
+      ref={containerRef}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative w-full h-screen bg-[#050e21] text-slate-200 overflow-hidden font-sans flex flex-col justify-between p-6 md:p-10 select-none"
+      className="relative w-full h-screen bg-[#02050f] text-slate-200 overflow-hidden font-sans flex flex-col justify-between p-6 md:p-10 select-none"
     >
       
-      {/* Background Grid Lines Overlay (Scanning appear effect) */}
+      {/* Background Grid Lines Overlay (Illuminated by cursor mask) */}
       <motion.div 
-        initial={{ opacity: 0, scale: 1.15, clipPath: "inset(50% 50% 50% 50%)" }}
-        animate={{ opacity: 0.1, scale: 1, clipPath: "inset(0% 0% 0% 0%)" }}
+        initial={{ opacity: 0, scale: 1.15 }}
+        animate={{ opacity: 0.25, scale: 1 }}
         transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none z-0"
         style={{
           backgroundImage: `
-            linear-gradient(to right, #4f46e5 1px, transparent 1px),
-            linear-gradient(to bottom, #4f46e5 1px, transparent 1px)
+            linear-gradient(to right, rgba(99, 102, 241, 0.25) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(99, 102, 241, 0.25) 1px, transparent 1px)
           `,
           backgroundSize: '33.33% 33.33vh',
-          backgroundPosition: 'center center'
+          backgroundPosition: 'center center',
+          // Radial mask that lights up grid lines near the mouse cursor
+          WebkitMaskImage: `radial-gradient(circle 300px at ${mousePos.x}px ${mousePos.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0) 100%)`,
+          maskImage: `radial-gradient(circle 300px at ${mousePos.x}px ${mousePos.y}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0) 100%)`,
+        }}
+      />
+      
+      {/* Soft Cyber Glow Portal (Follows cursor behind the grid) */}
+      <div 
+        className="absolute pointer-events-none rounded-full opacity-35 z-0 bg-gradient-to-r from-indigo-500/40 via-purple-600/30 to-cyan-500/40 blur-[130px] mix-blend-screen transition-all duration-300 ease-out"
+        style={{
+          left: `${mousePos.x - 225}px`,
+          top: `${mousePos.y - 225}px`,
+          width: '450px',
+          height: '450px',
         }}
       />
       
@@ -95,7 +127,7 @@ export default function Home() {
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.8, duration: 0.5 }}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none z-0"
       >
         <div className="absolute top-[33.33vh] left-[33.33%] w-2 h-2 border-t border-l border-indigo-400/30 -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute top-[33.33vh] left-[66.66%] w-2 h-2 border-t border-l border-indigo-400/30 -translate-x-1/2 -translate-y-1/2" />
@@ -104,14 +136,14 @@ export default function Home() {
       </motion.div>
 
       {/* 3D Canvas Container (Full Screen Background) */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-        <div className="w-full max-w-[900px] h-[90vh] opacity-80 mix-blend-screen">
+      <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+        <div className="w-full max-w-[1000px] h-[90vh] opacity-90 mix-blend-screen">
           <ThreeCanvas />
         </div>
       </div>
 
       {/* TOP HEADER ROW */}
-      <motion.header variants={itemDown} className="z-10 w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <motion.header variants={itemDown} className="z-20 w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Top Left */}
         <div className="flex flex-col gap-2">
           <div className="font-bold tracking-widest text-xs uppercase flex items-center gap-2">
@@ -146,7 +178,7 @@ export default function Home() {
       </motion.header>
 
       {/* CENTER / HUGE HEADLINE ROW */}
-      <motion.main variants={itemScale} className="z-10 my-auto pointer-events-none flex flex-col justify-end min-h-[40vh]">
+      <motion.main variants={itemScale} className="z-20 my-auto pointer-events-none flex flex-col justify-end min-h-[40vh]">
         <h1 className="text-[7.5vw] md:text-[6.5vw] lg:text-[6vw] font-black leading-[0.85] tracking-tighter uppercase max-w-5xl text-white select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
           WE BRING <br />
           CLARITY & CONTEXT <br />
@@ -155,11 +187,11 @@ export default function Home() {
       </motion.main>
 
       {/* BOTTOM CONTROL ROW */}
-      <motion.footer variants={itemUp} className="z-10 w-full grid grid-cols-1 md:grid-cols-3 gap-4 items-end pt-4">
+      <motion.footer variants={itemUp} className="z-20 w-full grid grid-cols-1 md:grid-cols-3 gap-4 items-end pt-4">
         {/* Bottom Left */}
         <div>
           <p className="font-mono text-[10px] text-indigo-200/40 uppercase tracking-widest">
-            {timeStr} SYS_READY
+            {liveTime} SYS_READY
           </p>
         </div>
 
